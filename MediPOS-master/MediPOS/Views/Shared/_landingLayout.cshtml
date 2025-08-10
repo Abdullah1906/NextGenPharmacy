@@ -1,0 +1,316 @@
+﻿@using Microsoft.AspNetCore.Http
+
+@{
+    var userName = Context.Session.GetString("UserName");
+}
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <title> ABD &mdash; Pharma </title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <link href="https://fonts.googleapis.com/css?family=Rubik:400,700|Crimson+Text:400,400i" rel="stylesheet">
+    <link rel="stylesheet" href="~/landing/fonts/icomoon/style.css">
+
+    <link rel="stylesheet" href="~/landing/css/bootstrap.min.css">
+    <link rel="stylesheet" href="~/landing/css/magnific-popup.css">
+    <link rel="stylesheet" href="~/landing/css/jquery-ui.css">
+    <link rel="stylesheet" href="~/landing/css/owl.carousel.min.css">
+    <link rel="stylesheet" href="~/landing/css/owl.theme.default.min.css">
+
+
+    <link rel="stylesheet" href="~/landing/css/aos.css">
+
+    <link rel="stylesheet" href="~/landing/css/style.css">
+    <link rel="stylesheet" href="~/css/design.css">
+
+
+
+
+</head>
+
+<body>
+
+    <div class="site-wrap">
+
+
+        <div class="site-navbar py-2">
+
+            <div class="search-wrap">
+                <div class="container">
+                    <a href="#" class="search-close js-search-close"><span class="icon-close2"></span></a>
+                    <form action="#" method="post">
+                        <input type="text" class="form-control" placeholder="Search keyword and hit enter...">
+                    </form>
+                </div>
+            </div>
+
+            <div class="container">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div class="logo">
+                        <div class="site-logo">
+                            <a asp-controller="Landing" asp-action="Index" class="js-logo-clone">Abd Pharma</a>
+                        </div>
+                    </div>
+                    <div class="main-nav d-none d-lg-block">
+                        <nav class="site-navigation text-right text-md-center" role="navigation">
+                            <ul class="site-menu js-clone-nav d-none d-lg-block">
+                                <li class=" @(ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")"><a asp-controller="Landing" asp-action="Index">Home</a></li>
+                                <li class="@(ViewContext.RouteData.Values["action"]?.ToString() == "Shop" ? "active" : "")"><a asp-controller="Landing" asp-action="Shop">Store</a></li>
+                                @* <li class="has-children">
+                                <a href="#">Dropdown</a>
+                                <ul class="dropdown">
+                                <li><a href="#">Supplements</a></li>
+                                <li class="has-children">
+                                <a href="#">Vitamins</a>
+                                <ul class="dropdown">
+                                <li><a href="#">Supplements</a></li>
+                                <li><a href="#">Vitamins</a></li>
+                                <li><a href="#">Diet &amp; Nutrition</a></li>
+                                <li><a href="#">Tea &amp; Coffee</a></li>
+                                </ul>
+                                </li>
+                                <li><a href="#">Diet &amp; Nutrition</a></li>
+                                <li><a href="#">Tea &amp; Coffee</a></li>
+
+                                </ul>
+                                </li> *@
+                                <li class="@(ViewContext.RouteData.Values["action"]?.ToString() == "About" ? "active" : "")"><a asp-controller="Landing" asp-action="About">About</a></li>
+                                <li class="@(ViewContext.RouteData.Values["action"]?.ToString() == "Contact" ? "active" : "")"><a asp-controller="Landing" asp-action="Contact">Contact</a></li>
+                                @if (User.Identity.IsAuthenticated)
+                                {
+                                    <li class="@(ViewContext.RouteData.Values["action"]?.ToString() == "TrackProduct" ? "active" : "")"><a asp-controller="Landing" asp-action="TrackProduct">Product Tracking</a></li>
+                                }
+                                
+                            </ul>
+                        </nav>
+                    </div>
+                    <div class="icons">
+                        <a href="#" class="icons-btn d-inline-block js-search-open"><span class="icon-search"></span></a>
+                        <a asp-controller="Landing" asp-action="Cart" class="icons-btn d-inline-block bag">
+                            <span class="icon-shopping-bag"></span>
+                            @* <span class="number"></span> *@
+                        </a> 
+
+                        <a href="#" class="site-menu-toggle js-menu-toggle ml-3 d-inline-block d-lg-none">
+                            <span class="icon-menu"></span>
+                        </a>
+
+
+                        @if (User.Identity.IsAuthenticated)
+                        {
+                            <a>
+                                <img src="/landing/images/Default.png" alt="User" class="ml-3" width="32" height="32" />
+                                <span class="text-black">@User.Identity.Name</span>
+                            </a>
+
+                            <a asp-controller="Login" asp-action="Logout" class="btn btn-outline-danger ml-2">
+                                <span>Logout</span>
+                            </a>
+                        }
+                        else
+                        {
+                            <a asp-controller="Login" asp-action="Login" class="btn btn-outline-primary ml-2">
+                                <span>LogIn</span>
+                            </a>
+                            <a asp-controller="Registration" asp-action="Register" class="btn btn-primary ml-2">
+                                <span>SignUp</span>
+                            </a>
+                        }
+
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @RenderBody()
+
+
+
+        <footer class="site-footer">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-6 col-lg-3 mb-4 mb-lg-0">
+
+                        <div class="block-7">
+                            <h3 class="footer-heading mb-4">About Us</h3>
+                            <p>
+                                Welcome to Abd Pharma, your trusted online pharmacy solution designed to make healthcare more accessible, efficient, and reliable.
+                                We are a technology-driven platform that connects patients, pharmacies, and healthcare providers in one seamless ecosystem.
+                            </p>
+                        </div>
+
+                    </div>
+                    <div class="col-lg-3 mx-auto mb-5 mb-lg-0">
+                        @* <h3 class="footer-heading mb-4">Quick Links</h3>
+                        <ul class="list-unstyled">
+                            <li><a href="#">Supplements</a></li>
+                            <li><a href="#">Vitamins</a></li>
+                            <li><a href="#">Diet &amp; Nutrition</a></li>
+                            <li><a href="#">Tea &amp; Coffee</a></li>
+                        </ul> *@
+                    </div>
+
+                    <div class="col-md-6 col-lg-3">
+                        <div class="block-5 mb-5">
+                            <h3 class="footer-heading mb-4">Contact Info</h3>
+                            <ul class="list-unstyled">
+                                <li class="address">Rd#12,Sector-10,Uttara,Dhaka</li>
+                                <li class="phone"><a>+8801767526733</a></li>
+                                <li class="email">abdhossain154221@gmail.com</li>
+                            </ul>
+                        </div>
+
+
+                    </div>
+                </div>
+                <div class="row pt-5 mt-5 text-center">
+                    <div class="col-md-12">
+                        <p>
+                            <!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
+                            Copyright &copy;
+                            <script>document.write(new Date().getFullYear());</script> All rights reserved | Made
+                            by <a href="https://github.com/Abdullah1906" target="_blank"
+                                  class="text-primary">Abdullah Hossain</a>
+                            <!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+        </footer>
+    </div>
+
+
+
+    <script src="~/landing/js/jquery-3.3.1.min.js"></script>
+    <script src="~/landing/js/jquery-ui.js"></script>
+    <script src="~/landing/js/popper.min.js"></script>
+    <script src="~/landing/js/bootstrap.min.js"></script>
+    <script src="~/landing/js/owl.carousel.min.js"></script>
+    <script src="~/landing/js/jquery.magnific-popup.min.js"></script>
+    <script src="~/landing/js/aos.js"></script>
+    <script src="~/landing/js/main.js"></script>
+
+
+    <script>
+
+
+        $(function () {
+            // Initialize slider with sample min and max values
+            $("#slider-range").slider({
+                range: true,
+                min: 0,
+                max: 10000,
+                values: [500, 5000],
+                slide: function (event, ui) {
+                    $("#amount").val("৳" + ui.values[0] + " - ৳" + ui.values[1]);
+                    $("#minPrice").val(ui.values[0]);
+                    $("#maxPrice").val(ui.values[1]);
+                }
+            });
+
+            // Set initial values
+            $("#amount").val("৳" + $("#slider-range").slider("values", 0) +
+                " - ৳" + $("#slider-range").slider("values", 1));
+            $("#minPrice").val($("#slider-range").slider("values", 0));
+            $("#maxPrice").val($("#slider-range").slider("values", 1));
+        });
+    </script>
+
+    <script>
+
+        document.addEventListener("DOMContentLoaded", function () {
+            updateCartTotals();
+        });
+
+        function updateCartTotals() {
+            let subtotal = 0;
+            document.querySelectorAll("tr").forEach(row => {
+                const quantityInput = row.querySelector('.quantity-input');
+                const price = parseFloat(quantityInput?.getAttribute("data-price"));
+                const quantity = parseInt(quantityInput?.value);
+                const totalCell = row.querySelector('.product-total');
+
+                if (!isNaN(price) && !isNaN(quantity)) {
+                    const lineTotal = price * quantity;
+                    subtotal += lineTotal;
+
+                    if (totalCell) {
+                        totalCell.textContent = '৳' + lineTotal.toFixed(2);
+                    }
+                }
+            });
+
+            // Update subtotal section
+            document.getElementById("subtotal").textContent = '৳' + subtotal.toFixed(2);
+
+            let vatPercent = 3;
+            debugger;
+            // Calculate VAT amount
+            let vatAmount = subtotal * (vatPercent / 100);
+
+            // Calculate grand total (subtotal + VAT)
+            let grandTotal = subtotal + vatAmount;
+
+            let grandTotalInt = Math.round(grandTotal);
+
+            // Update total section
+            document.getElementById("total").textContent = '৳' + grandTotalInt;
+
+        }
+
+        // Attach event listener on VAT input
+        // document.getElementById("vat-input").addEventListener("input", updateCartTotals);
+
+
+        // Also call updateCartTotals whenever quantities change (e.g., plus/minus buttons or manual input)
+        document.querySelectorAll('.quantity-input').forEach(input => {
+            input.addEventListener('change', updateCartTotals);
+        });
+
+
+
+        document.querySelectorAll('.jss-btn-minus').forEach(button => {
+            button.addEventListener('click', () => {
+                const input = button.closest('.input-group').querySelector('.quantity-input');
+                let quantity = parseInt(input.value);
+                if (quantity > 1) {
+                    quantity--;
+                    input.value = quantity;
+                    updateCartTotals();
+                }
+            });
+        });
+
+        document.querySelectorAll('.jss-btn-plus').forEach(button => {
+            button.addEventListener('click', () => {
+                const input = button.closest('.input-group').querySelector('.quantity-input');
+                let quantity = parseInt(input.value);
+                quantity++;
+                input.value = quantity;
+                updateCartTotals();
+            });
+        });
+
+
+    
+            
+    
+
+    </script>
+
+
+
+
+</body>
+
+</html>

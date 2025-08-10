@@ -1,0 +1,87 @@
+﻿@model SalesReportViewModel
+
+@{
+    ViewData["Title"] = "Sales Report";
+}
+
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-success text-white text-center">
+        <h2>Sales Report</h2>
+    </div>
+</div>
+
+<!-- Filter Card -->
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        <strong>Filter Sales Report</strong>
+    </div>
+    <div class="card-body">
+        <form method="post" asp-action="SalesReportFilter" asp-controller="Reports" id="reportForm">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label for="startDate" class="form-label">Start Date</label>
+                    <input type="date" class="form-control" id="startDate" name="startDate" value="@Context.Request.Query["startDate"]" placeholder="dd/MM/yyyy"/>
+                </div>
+                <div class="col-md-3">
+                    <label for="endDate" class="form-label">End Date</label>
+                    <input type="date" class="form-control" id="endDate" name="endDate" value="@Context.Request.Query["endDate"]" placeholder="dd/MM/yyyy"/>
+                </div>
+                <div class="col-md-3 align-self-end">
+                    <button type="submit" name="action" value="search" class="btn btn-success w-100">Search</button>
+                </div>
+                <div class="col-md-3 align-self-end">
+                    <button type="submit" name="action" value="print" id="printBtn" class="btn btn-danger">
+                        <i class="bi bi-printer"></i> Print Report
+                    </button>
+                </div>
+
+
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Report Table -->
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>Product Name</th>
+            <th>Quantity Sold</th>
+            <th>Total Sales</th>
+            <th>Profit</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var report in Model.SaleReports)
+
+        {
+            <tr>
+                <td>@report.ProductName</td>
+                <td>@report.QuantitySold</td>
+                <td>@report.TotalSales.ToString("0.00")</td>
+                <td>@report.Profit.ToString("0.00")</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<!-- Totals -->
+<div class="alert alert-info mt-3">
+    <strong>Total Sales Value:</strong> @Model.TotalSalesValue.ToString("0.00")
+</div>
+<div class="alert alert-success mb-5">
+    <strong>Total Profit:</strong> @Model.TotalProfit.ToString("0.00")
+</div>
+<script>
+    const form = document.getElementById('reportForm');
+    const printBtn = document.getElementById('printBtn');
+
+    form.addEventListener('submit', function (e) {
+        if (e.submitter === printBtn) {
+            form.target = '_blank'; 
+        } else {
+            form.target = '_self'; 
+        }
+    });
+</script>

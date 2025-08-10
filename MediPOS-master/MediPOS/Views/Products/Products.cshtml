@@ -1,0 +1,181 @@
+﻿@model ProductIndexViewModel
+
+@{
+    ViewData["Title"] = "Product Management";
+}
+
+<link href="~/css/datatables.min.css" rel="stylesheet" />
+
+<h2 class="mb-5">Product Management</h2>
+
+<div class="row">
+    <!-- Product Form -->
+    <div class="col-md-4">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-success text-white text-center">
+                <h4 class="mb-0">@((Model.Product.Id == 0) ? "Add Product" : "Edit Product")</h4>
+            </div>
+        </div>
+
+        <form asp-action="SaveProducts" enctype="multipart/form-data" method="post">
+            <input type="hidden" asp-for="Product.Id" />
+
+            <div class="row">
+                <!-- Left side: Other inputs -->
+                
+                    <div class="form-group">
+                        <label asp-for="Product.ProductName">Product Name<span style="color: red;">*</span></label>
+                        <input asp-for="Product.ProductName" class="form-control" />
+                        <span asp-validation-for="Product.ProductName" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="Product.Price">Price<span style="color: red;">*</span></label>
+                        <input asp-for="Product.Price" class="form-control" />
+                        <span asp-validation-for="Product.Price" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="Product.Stock">Stock<span style="color: red;">*</span></label>
+                        <input asp-for="Product.Stock" class="form-control" />
+                        <span asp-validation-for="Product.Stock" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="Product.CategoryId">Category<span style="color: red;">*</span></label>
+                        <select asp-for="Product.CategoryId" class="form-control" asp-items="@(new SelectList(Model.Categories, "Id", "Name"))">
+                            <option value="">-- Select Category --</option>
+                        </select>
+                        <span asp-validation-for="Product.CategoryId" class="text-danger"></span>
+                    </div>
+                
+
+                
+                    <label asp-for="Product.Image" class="form-label"></label>
+                    <div class="form-group position-relative" style="max-width: 300px;">
+                        
+                        <div class="position-relative d-inline-block">
+
+                            @if (!string.IsNullOrEmpty(Model.Product.ExistingImageUrl))
+                            {
+                                <img id="imagePreview" src="@Model.Product.ExistingImageUrl" class="img-thumbnail" style="width: 150px; height: 150px; object-fit: cover;" alt="Product Image" />
+                            }
+                            else
+                            {
+                                <img id="imagePreview" src="/landing/images/Default.png" class="img-thumbnail d-none" style="width: 150px; height: 150px; object-fit: cover;" alt="Image Preview" />
+                            }
+
+                            <!-- Close icon only, red color -->
+                            <span id="clearImageBtn"
+                                  style="
+                                        position: absolute;
+                                        top: 5px;
+                                        right: 5px;
+                                        color: red;
+                                        font-size: 24px;
+                                        font-weight: bold;
+                                        cursor: pointer;
+                                        user-select: none;
+                                        line-height: 1;"
+                                  title="Clear Image">&times;</span>
+                        </div>
+
+                        <input asp-for="Product.Image" type="file" class="form-control mt-2" id="imageInput" />
+
+                        <span asp-validation-for="Product.Image" class="text-danger"></span>
+                    </div>
+               
+            </div>
+
+
+            <div class="form-group mt-3">
+                <button type="submit" class="btn btn-primary">@(Model.Product.Id == 0 ? "Add" : "Update")</button>
+                <a asp-action="Products" class="btn btn-secondary">Clear</a>
+            </div>
+        </form>
+    </div>
+    
+
+
+    <!-- Product List -->
+    <div class="col-md-8">
+        <h4>Product List</h4>
+        <table class="table table-bordered table-striped" id="ProductTable">
+            <thead>
+                <tr>
+                    <th>Image</th>
+                    <th>Product Name</th>
+                    <th>Category</th>
+                    <th>Price</th>
+                    <th>Stock Qty</th>
+                    <th>Total</th>
+                    <th style="width: 150px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Products)
+                {
+                    <tr>
+                        <td>
+                            @if (!string.IsNullOrEmpty(item.ImageUrl))
+
+                            {
+                                <img src="@item.ImageUrl" height="50px" width="50px" />
+                            }
+                        </td>
+                        <td>@item.ProductName</td>
+                        <td>@item.Category?.Name</td>
+                        <td>@item.Price</td>
+                        <td>@item.Stock</td>
+                        <td>@(item.Price * item.Stock)</td>
+                        <td>
+                            <a asp-action="EditProducts" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Edit</a>
+                            <a asp-action="DeleteProducts" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Delete</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/js/datatables.min.js"></script>
+
+<script>
+    new DataTable('#ProductTable');
+    const imageInput = document.getElementById('imageInput');
+    const imagePreview = document.getElementById('imagePreview');
+    const clearBtn = document.getElementById('clearImageBtn');
+
+    imageInput.addEventListener('change', function (event) {
+        const [file] = event.target.files;
+        if (file) {
+            imagePreview.src = URL.createObjectURL(file);
+            imagePreview.classList.remove('d-none');
+            clearBtn.style.display = 'block';
+        }
+    });
+
+    clearBtn.addEventListener('click', function () {
+        imageInput.value = '';
+
+        const defaultImageUrl = '@(string.IsNullOrEmpty(Model.Product.ExistingImageUrl) ? "/landing/images/Default.png" : Model.Product.ExistingImageUrl)';
+
+        if (defaultImageUrl) {
+            imagePreview.src = defaultImageUrl;
+            imagePreview.classList.remove('d-none');
+            clearBtn.style.display = 'none';  // hide close icon for default image
+        } else {
+            imagePreview.classList.add('d-none');
+            clearBtn.style.display = 'none';
+        }
+    });
+
+    if (imagePreview.classList.contains('d-none')) {
+        clearBtn.style.display = 'none';
+    }
+</script>

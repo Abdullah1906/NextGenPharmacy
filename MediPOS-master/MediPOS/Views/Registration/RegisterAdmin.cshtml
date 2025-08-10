@@ -1,0 +1,142 @@
+﻿@model MediPOS.Models.User
+
+@{
+    Layout = null;
+    ViewData["Title"] = "Register";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - MediPOS</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/MediPOS.styles.css" asp-append-version="true" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet" />
+</head>
+<body class="bg-light d-flex flex-column min-vh-100">
+
+    <main class="flex-grow-1 d-flex align-items-center justify-content-center bg-primary">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-md-6">
+                    <div class="card shadow-lg border-0 rounded-4 o-hidden my-5">
+                        <div class="card-body p-5">
+                            <h3 class="text-center mb-4">Create an Account</h3>
+                            <form id="registerForm" asp-action="RegisterAdmin" method="post">
+
+                                <!-- Name -->
+                                <div class="form-floating mb-3">
+                                    <input asp-for="U_NAME" class="form-control" placeholder="User Name" />
+                                    <label asp-for="U_NAME">User Name</label>
+                                    <span asp-validation-for="U_NAME" class="text-danger small"></span>
+                                </div>
+
+                                <!-- Email -->
+                                <div class="form-floating mb-3">
+                                    <input asp-for="U_EMAIL" class="form-control" placeholder="Email Address" />
+                                    <label asp-for="U_EMAIL">Email Address</label>
+                                    <span asp-validation-for="U_EMAIL" class="text-danger small"></span>
+                                </div>
+                                <!-- Email -->
+                                <div class="form-floating mb-3">
+                                    <input asp-for="U_PHONE_NO" class="form-control" placeholder="Phone Number" />
+                                    <label asp-for="U_PHONE_NO">Phone Number</label>
+                                    <span asp-validation-for="U_PHONE_NO" class="text-danger small"></span>
+                                </div>
+
+                                <!-- Password -->
+                                <div class="form-floating mb-3">
+                                    <input asp-for="U_PASSWORD" type="password" class="form-control" placeholder="Password" />
+                                    <label asp-for="U_PASSWORD">Password</label>
+                                    <span asp-validation-for="U_PASSWORD" class="text-danger small"></span>
+                                </div>
+
+                                <!-- Confirm Password -->
+                                <div class="form-floating mb-4">
+                                    <input asp-for="U_CONFIRM_PASSWORD" type="password" class="form-control" placeholder="Confirm Password" />
+                                    <label asp-for="U_CONFIRM_PASSWORD">Confirm Password</label>
+                                    <span asp-validation-for="U_CONFIRM_PASSWORD" class="text-danger small"></span>
+                                </div>
+
+                                <!-- Submit -->
+                                <button type="submit" class="btn btn-success w-100">Register</button>
+
+                                <!-- Error Message -->
+                                @if (!string.IsNullOrEmpty(ViewBag.error as string))
+                                {
+                                    <div class="alert alert-danger mt-3 text-center" role="alert">
+                                        @ViewBag.error
+                                    </div>
+                                }
+                            </form>
+
+                            <hr>
+
+                            <div class="text-center">
+                                <a asp-controller="Login" asp-action="Login" class="text-decoration-none small">Already have an account? Sign in!</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="text-center text-muted py-3">
+        &copy; 2025 - ABD-PharmacyMS - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        $(document).ready(function () {
+            $('#registerForm').submit(function (e) {
+                e.preventDefault();
+
+                $.ajax({
+                    type: 'POST',
+                    url: '@Url.Action("RegisterAdmin", "Registration")',
+                    data: $(this).serialize(),
+                    success: function (response) {
+                        if (response.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Registered!',
+                                text: response.message,
+                                confirmButtonText: 'OK'
+                            }).then(() => {
+                                window.location.href = '@Url.Action("Login", "Login")';
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Oops!',
+                                text: response.message || 'Something went wrong!'
+                            });
+                        }
+                    },
+                    error: function () {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Server Error',
+                            text: 'An unexpected error occurred. Please try again.'
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+
+
+
+
+</body>
+</html>

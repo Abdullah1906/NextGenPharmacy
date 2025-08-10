@@ -1,0 +1,106 @@
+﻿@model PurchaseViewModel
+
+@{
+    ViewData["Title"] = "Purchase Management";
+}
+<link href="~/css/datatables.min.css" rel="stylesheet" />
+
+<h2 class="mb-5">Purchase Management</h2>
+
+<div class="row">
+    <!-- Purchase Form -->
+    <div class="col-md-4">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-success text-white text-center">
+                <h4 class="mb-0">Purchase From</h4>
+            </div>
+        </div>
+        <form asp-action="Save">
+            <input type="hidden" asp-for="Purchase.Id" />
+
+            <div class="form-group">
+                <label asp-for="Purchase.SupplierId">Supplier<span style="color: red;">*</span></label>
+                <select asp-for="Purchase.SupplierId" class="form-control">
+                    <option value="">Select Supplier</option>
+                    @foreach (var supplier in Model.Suppliers)
+                    {
+                        <option value="@supplier.Id">@supplier.Name</option>
+                    }
+                </select>
+                <span asp-validation-for="Purchase.SupplierId" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Purchase.ProductId">Product<span style="color: red;">*</span></label>
+                <select asp-for="Purchase.ProductId" class="form-control">
+                    <option value="">Select Product</option>
+                    @foreach (var product in Model.Products)
+                    {
+                        <option value="@product.Id">@product.ProductName</option>
+                    }
+                </select>
+                <span asp-validation-for="Purchase.ProductId" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Purchase.Quantity">Quantity<span style="color: red;">*</span></label>
+                <input asp-for="Purchase.Quantity" class="form-control" />
+                <span asp-validation-for="Purchase.Quantity" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Purchase.Price">Price<span style="color: red;">*</span></label>
+                <input asp-for="Purchase.Price" class="form-control" />
+                <span asp-validation-for="Purchase.Price" class="text-danger"></span>
+            </div>
+
+            <button type="submit" class="btn btn-success mt-2">Add Purchase</button>
+        </form>
+    </div>
+
+    <!-- Purchase List -->
+    <div class="col-md-8">
+        <h4>Purchase List</h4>
+        <table class="table table-bordered table-striped" id="PurchaseList">
+            <thead>
+                <tr>
+                    <th>Supplier</th>
+                    <th>Product</th>
+                    <th>Quantity</th>
+                    <th>Price</th>
+                    <th>Total</th>
+                    <th>Purchase Date</th>
+                    <th style="width:150px">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Purchases)
+                {
+                    <tr>
+                        <td>@item.Supplier.Name</td>
+                        <td>@item.Product.ProductName</td>
+                        <td>@item.Quantity</td>
+                        <td>@item.Price</td>
+                        <td>@item.Total</td>
+                        <td>@item.PurchaseDate?.ToString("MM/dd/yyyy")</td>
+                        <td>
+                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Delete</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
+<script src="~/lib/jquery/dist/jquery.min.js"></script>@* age javascript then datatables dite hobe*@
+<script src="~/js/datatables.min.js"></script>
+
+<script>
+    new DataTable('#PurchaseList');
+</script>

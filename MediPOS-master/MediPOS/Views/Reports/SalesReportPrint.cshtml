@@ -1,0 +1,79 @@
+﻿@model SalesReportViewModel
+@{
+    Layout = null; 
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Sales Report Print</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        h2 {
+            text-align: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f0f0f0;
+        }
+        .summary {
+            margin-top: 30px;
+            font-size: 1.1em;
+            text-align: right; /* Align text to the right */
+        }
+    </style>
+</head>
+<body>
+    <h2>Sales Report</h2>
+    <div class="report-dates">
+        <strong>Report Period:</strong>
+        @Model.StartDate.ToString("dd-MM-yyyy") to @Model.EndDate.ToString("dd-MM-yyyy")
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Product Name</th>
+                <th>Quantity Sold</th>
+                <th>Total Sales</th>
+                <th>Profit</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var report in Model.SaleReports)
+            {
+                <tr>
+                    <td>@report.ProductName</td>
+                    <td>@report.QuantitySold</td>
+                    <td>@report.TotalSales.ToString("0.00")</td>
+                    <td>@report.Profit.ToString("0.00")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <div class="summary">
+        <p><strong>Total Sales:</strong> @Model.TotalSalesValue.ToString("0.00")</p>
+        <p><strong>Total Profit:</strong> @Model.TotalProfit.ToString("0.00")</p>
+    </div>
+
+    <script>
+        // Auto-trigger print on page load
+        window.onload = function () {
+            window.print();
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,104 @@
+﻿@model RiderVm
+
+@{
+    ViewData["Title"] = "Manage Riders";
+}
+<h2 class="mb-5">Rider Management</h2>
+
+<div class="container mt-4">
+    <div class="row">
+        <!-- Create Rider Form -->
+        <div class="col-md-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-success text-white text-center">
+                    <h4>@(Model.Riders.Id == 0 ? "Add New Rider" : "Edit Rider")</h4>
+                </div>
+            </div>
+            
+            <form asp-action="SaveRider" method="post">
+
+                <input type="hidden" asp-for="Riders.Id" />
+
+                <div class="form-group">
+                    <label asp-for="Riders.Name"></label>
+                    <input asp-for="Riders.Name" class="form-control" />
+                    <span asp-validation-for="Riders.Name" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Riders.Phone"></label>
+                    <input asp-for="Riders.Phone" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <label asp-for="Riders.Email"></label>
+                    <input asp-for="Riders.Email" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <label asp-for="Riders.VehicleNumber"></label>
+                    <input asp-for="Riders.VehicleNumber" class="form-control" />
+                </div>
+                <div class="form-group form-check mb-2">
+                    <input asp-for="Riders.IsAvailable" class="form-check-input" />
+                    <label asp-for="Riders.IsAvailable" class="form-check-label"></label>
+                </div>
+                <button type="submit" class="btn btn-primary">Add Rider</button>
+            </form>
+        </div>
+
+        <!-- Rider List -->
+        <div class="col-md-8">
+            <h4>Rider Details</h4>
+            <table class="table table-bordered table-striped">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>Name</th>
+                        <th>Phone</th>
+                        <th>Email</th>
+                        <th>Vehicle Number</th>
+                        <th>Available</th>
+                        <th style="width: 150px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.RiderList != null && Model.RiderList.Any())
+                    {
+                        foreach (var rider in Model.RiderList)
+                        {
+                            <tr>
+                                <td>@rider.Name</td>
+                                <td>@rider.Phone</td>
+                                <td>@rider.Email</td>
+                                <td>@rider.VehicleNumber</td>
+                                <td>
+                                    @if (rider.IsAvailable)
+                                    {
+                                        <span class="text-black">Yes</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-danger">No</span>
+                                    }
+                                </td>
+                                <td>
+                                    <a asp-action="EditRiders" asp-route-id="@rider.Id" class="btn btn-sm btn-info">Edit</a>
+                                    <a asp-action="DeleteRiders" asp-route-id="@rider.Id" class="btn btn-sm btn-danger">Delete</a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center text-muted">No riders found.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

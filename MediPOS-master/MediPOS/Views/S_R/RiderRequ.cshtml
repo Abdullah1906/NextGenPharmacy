@@ -1,0 +1,131 @@
+﻿@model List<RiderOrderVM>
+@{
+    Layout = "~/Views/Shared/_SupplierLayout.cshtml";
+    ViewData["Title"] = "Assigned Orders";
+}
+
+<link href="~/css/datatables.min.css" rel="stylesheet" />
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-success text-white text-center">
+        <h2>My Assigned Deliveries</h2>
+    </div>
+</div>
+
+<table class="table table-bordered table-hover" id="RiderTable">
+    <thead class="table-primary">
+        <tr>
+            <th>Rider Name</th>
+            <th>Customer</th>
+            <th>Address</th>
+            <th>Phone</th>
+            <th>Email</th>
+            <th>Order Date</th>
+            <th>Total Amount</th>
+            <th>Products</th>
+            <th style="width: 150px;">Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var order in Model)
+        {
+            <tr>
+                <td>@order.RiderName</td>
+                <td>@order.Order.CustomerName</td>
+                <td>@order.Order.Address, @order.Order.City, @order.Order.ZipCode</td>
+                <td>@order.Order.Phone</td>
+                <td>@order.Order.Email</td>
+                <td>@order.Order.OrderDate.ToString("yyyy-MM-dd")</td>
+                <td>৳@order.Order.TotalAmount.ToString("")</td>
+                <td>
+                    <ul class="list-unstyled mb-0">
+                        @foreach (var item in order.Order.OrderItems)
+                        {
+                            <li>
+                                <strong>@item.Product?.ProductName</strong>
+                                — Qty: @item.Quantity, Price: @item.UnitPrice
+                            </li>
+                        }
+                    </ul>
+                </td>
+                
+                <td>
+                    <button type="button"
+                            class="btn btn-sm @(order.Order.DeliveryStatus == DeliveryStatus.Delivered ? "btn-secondary" : "btn-success")"
+                            data-id="@order.Order.Id"
+                            onclick="Deliver(this)"
+                        @(order.Order.DeliveryStatus == DeliveryStatus.Delivered ? "disabled" : "")>
+                        @(order.Order.DeliveryStatus == DeliveryStatus.Delivered ? "Delivered" : "Deliver")
+                    </button>
+                </td>
+
+                
+            </tr>
+        }
+    </tbody>
+</table>
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/js/datatables.min.js"></script>
+
+@section Scripts {
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+    <script type="text/javascript">
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/orderHub")
+            .build();
+        connection.start()
+            .then(() => console.log("SignalR connected"))
+            .catch(err => console.error(err));
+
+
+
+    </script>
+    <script>
+        
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/assignHub") // match with your Hub endpoint
+            .build();
+        debugger;
+        connection.on("RiderAssigned", function (data) {
+            Swal.fire({
+                title: "New Delivery Assigned!",
+                text: "Order ID: " + data.orderId + " has been assigned to you.",
+                icon: "info"
+            }).then(() => {
+                // Optional: reload the table
+                location.reload();
+            });
+        });
+
+        connection.start().catch(function (err) {
+            return console.error(err.toString());
+        });
+    </script>
+
+    <script>
+        new DataTable('#RiderTable');
+        function Deliver(button) {
+            const orderId = $(button).data("id");
+
+            $.ajax({
+                url: '/Tracking/Delivered',
+                type: 'POST',
+                data: { orderId: orderId },
+                success: function (response) {
+                    Swal.fire("Delivered!", "", "success");
+
+                    // Update button appearance
+                    $(button).prop("disabled", true);
+                    $(button).text("Delivered");
+                    $(button).removeClass("btn-success").addClass("btn-secondary");
+                },
+                error: function (xhr, status, error) {
+                    Swal.fire("Error", xhr.responseText || error, "error");
+                }
+            });
+        }
+    </script>
+}
+

@@ -1,0 +1,120 @@
+﻿@model OrderDisplayVM
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Print Order - @Model.OrderId</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+    <link href="~/css/datatables.min.css" rel="stylesheet" />
+    <link href="~/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <style>
+       
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            color: #000;
+        }
+
+        .invoice {
+            max-width: 800px;
+            margin: auto;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            border: 1px solid #000;
+            padding: 8px 12px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .total {
+            text-align: right;
+            font-weight: bold;
+            margin-top: 20px;
+            font-size: 18px;
+        }
+
+        .meta {
+            margin-bottom: 20px;
+        }
+
+        .meta p {
+            margin: 4px 0;
+        }
+
+
+    </style>
+</head>
+<body onload="window.print()">
+    <div class="wrapper">
+        <section class="invoice">
+            <div class="row mb-4">
+                <div class="col-sm-6">
+                    <h5><strong>Order Invoice</strong></h5>
+                </div>
+                <div class="col-sm-6 text-end">
+                    <p><strong>Order ID:</strong> @Model.OrderId</p>
+                    <p><strong>Order Date:</strong> @Model.OrderDate.ToString("MM/dd/yyyy")</p>
+                    <p><strong>Status:</strong> @Model.DeliveryStatus</p>
+                    <p><strong>Customer:</strong> @Model.CustomerName</p>
+                </div>
+            </div>
+
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th class="text-end">Unit Price</th>
+                        <th class="text-end">Quantity</th>
+                        <th class="text-end">Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.OrderItems)
+                    {
+                        <tr>
+                            <td>@item.ProductName</td>
+                            <td class="text-end">@item.UnitPrice</td>
+                            <td class="text-end">@item.Quantity</td>
+                            <td class="text-end">@(item.UnitPrice * item.Quantity)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+            <div class="row mt-3">
+                <div class="col-12 text-end">
+                    <strong>Total:</strong> @Model.TotalAmount
+                </div>
+            </div>
+        </section>
+    </div>
+
+    
+
+    
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.js"></script>
+
+   
+
+</body>
+</html>

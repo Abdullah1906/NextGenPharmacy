@@ -1,0 +1,86 @@
+﻿@model List<OrderStatusVm>
+
+@{
+    Layout = "~/Views/Shared/_landingLayout.cshtml";
+
+}
+
+<div class="bg-light py-3">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12 mb-0">
+                <a asp-controller="Landing" asp-action="Index">Home</a> <span class="mx-2 mb-0">/</span> <strong class="text-black">Track Your Products</strong>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="container py-5">
+        @if (Model != null && Model.Any())
+        {
+            foreach (var order in Model)
+            {
+                <h5 class="mt-4">Delivery Progress</h5>
+                <div class="progress" style="height: 20px;">
+                    <div class="progress-bar bg-success" role="progressbar" style="width: @order.Progress%" aria-valuenow="@order.Progress" aria-valuemin="0" aria-valuemax="100">
+                        @order.Progress%
+                    </div>
+                </div>
+
+            }
+        }
+
+    </div>
+
+    <div class="container py-5">
+        <div class="border mb-3">
+            <h3 class="h6 mb-0">
+                <a class="d-block text-black" data-toggle="collapse" href="#collapsebank" role="button"
+                   aria-expanded="false" aria-controls="collapsebank">Contact with rider</a>
+            </h3>
+
+            @if (Model != null && Model.Any())
+            {
+                foreach (var order in Model)
+                {
+                    <div class="collapse" id="collapsebank">
+                        <div class="py-2 px-4">
+                            <p class="mb-0 text-black text-justify">
+                                <strong>Contact Rider:</strong> @order.RiderName (@order.RiderPhone)
+                            </p>
+                        </div>
+                    </div>
+                }
+            }
+
+
+        </div>
+    </div>
+
+    <div class="container py-5">
+        <h2 class="mb-4">Track Your Products</h2>
+
+        @if (Model != null && Model.Any())
+        {
+            foreach (var order in Model)
+            {
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        Order ID: @order.OrderId | Placed on: @order.OrderDate.ToString("dd MMM yyyy")
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Delivery Status:</strong> @order.DeliveryStatus</p>
+                        <p><strong>Shipping Address:</strong> @order.Address, @order.City - @order.ZipCode</p>
+
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="alert alert-info">You have no orders to track at the moment.</div>
+        }
+    </div>
+
+
+</div>

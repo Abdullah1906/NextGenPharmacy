@@ -1,0 +1,137 @@
+﻿@model MediPOS.Models.ShopViewModel
+@{
+    Layout = "~/Views/Shared/_landingLayout.cshtml";
+}
+
+
+
+
+        <div class="bg-light py-3">
+            <div class="container">
+                <div class="row">
+            <div class="col-md-12 mb-0"><a asp-controller="Landing" asp-action="Index">Home</a> <span class="mx-2 mb-0">/</span> <strong class="text-black">Store</strong></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="site-section">
+            <div class="container">
+
+                <div class="row mb-5">
+                    <div class="col-lg-6">
+                        <h3 class="mb-3 h6 text-uppercase text-black d-block">Filter by Price</h3>
+
+                        <!-- Price slider -->
+                        <div id="slider-range" class="mb-3"></div>
+
+                        <!-- Display selected range -->
+                        <input type="text" id="amount" class="form-control border-0 pl-0 bg-white" readonly />
+
+                        <!-- Hidden form inputs to submit min/max price -->
+                        <form id="priceFilterForm" method="get" asp-controller="Landing" asp-action="Shop">
+                            <input type="hidden" id="minPrice" name="minPrice" />
+                            <input type="hidden" id="maxPrice" name="maxPrice" />
+                            <button type="submit" class="btn btn-primary mt-2">Apply Filter</button>
+                        </form>
+                    </div>
+
+                    <div class="col-lg-6">
+                        <h3 class="mb-3 h6 text-uppercase text-black d-block">Filter by Reference</h3>
+                        <button type="button" class="btn btn-secondary btn-md dropdown-toggle px-4" id="dropdownMenuReference"
+                                data-toggle="dropdown">
+                            Reference
+                        </button>
+                        <div class="dropdown-menu" aria-labelledby="dropdownMenuReference">
+                            <a class="dropdown-item" asp-action="Shop" asp-route-sortOrder="relevance">Relevance</a>
+                            <a class="dropdown-item" asp-action="Shop" asp-route-sortOrder="name_asc">Name, A to Z</a>
+                            <a class="dropdown-item" asp-action="Shop" asp-route-sortOrder="name_desc">Name, Z to A</a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" asp-action="Shop" asp-route-sortOrder="price_asc">Price, low to high</a>
+                            <a class="dropdown-item" asp-action="Shop" asp-route-sortOrder="price_desc">Price, high to low</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row pt-5" id="ShopList">
+                    @foreach (var product in Model.Products)
+                    {
+                        <div class="col-sm-6 col-lg-4 text-center item mb-4">
+                            @if (product.Price < 50)
+                            {
+                                <span class="tag">Sale</span>
+                            }
+
+                            <a asp-controller="Landing" asp-action="Shop_Single" asp-route-id="@product.Id">
+                                <img src="@product.ImageUrl" alt="@product.ProductName" class="img-fluid mx-auto d-block"
+                                     style="width: 150px; height: 200px; object-fit: cover;" />
+                            </a>
+                            <h3 class="text-dark">
+                                <a asp-controller="Landing" asp-action="Shop_Single" asp-route-id="@product.Id">
+                                    @product.ProductName
+                                </a>
+                            </h3>
+                            <p class="price">
+                                @if (product.Price > 2500 && product.Price < 8000)
+                                {
+                                    <text><del>৳@(product.Price + 100)</del> &mdash; ৳@product.Price</text>
+                                }
+                                else if (product.Price > 50 && product.Price < 2500)
+                                {
+                                    <text><del>৳@(product.Price + 40)</del> &mdash; ৳@product.Price</text>
+                                }
+                                else
+                                {
+                                    <text>৳@product.Price</text>
+                                }
+                            </p>
+                        </div>
+                    }
+                </div>
+
+                <!-- Pagination -->
+                <nav>
+                    <ul class="pagination justify-content-center mt-4">
+                        @for (int i = 1; i <= Model.TotalPages; i++)
+                        {
+                            <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                                <a class="page-link" asp-controller="Landing" asp-action="Shop" asp-route-page="@i">@i</a>
+                            </li>
+                        }
+                    </ul>
+                </nav>
+
+            </div>
+        </div>
+        
+
+
+        <div class="site-section bg-secondary bg-image" style="background-image: url('/landing/images/bg_2.jpg');">
+            <div class="container">
+                <div class="row align-items-stretch">
+                    <div class="col-lg-6 mb-5 mb-lg-0">
+                        <a href="#" class="banner-1 h-100 d-flex" style="background-image: url('/landing/images/bg_1.jpg');">
+                            <div class="banner-1-inner align-self-center">
+                                <h2>Pharma Products</h2>
+                                <p>
+                                    Pharmaceutical products are substances used to diagnose, treat, cure, or prevent diseases and health conditions.
+                                    They include prescription drugs, over-the-counter (OTC) medicines, vaccines, biologics, and supplements.
+                                </p>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-lg-6 mb-5 mb-lg-0">
+                        <a href="#" class="banner-1 h-100 d-flex" style="background-image: url('/landing/images/bg_2.jpg');">
+                            <div class="banner-1-inner ml-auto  align-self-center justify">
+                                <h2>Rated by Experts</h2>
+                                <p>
+                                    ABD Pharma is widely regarded as one of the most trusted pharmaceutical providers,consistently rated highly by
+                                    healthcare experts and professionals.
+                                </p>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+

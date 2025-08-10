@@ -1,0 +1,224 @@
+﻿@{
+    
+    var userTypeId = User.FindFirst("UserTypeId")?.Value;
+}
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - ABD-Pharma</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/MediPOS.styles.css" asp-append-version="true" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="~/css/datatables.min.css" rel="stylesheet" />
+
+
+
+    <style>
+        body {
+          padding-top: 56px;
+          min-height: 100vh;
+          overflow-x: hidden;
+        }
+        .sidebar {
+          min-height: 100vh;
+          position: fixed;
+          top: 56px;
+          left: 0;
+          width: 250px;
+          background-color: #192a56;
+          color: white;
+        }
+        .sidebar .nav-link.active {
+            background-color: #273c75;
+        }
+        .content {
+          margin-left: 250px;
+          padding: 20px;
+        }
+        .submenu {
+          padding-left: 1.5rem;
+        }
+        .user-dropdown img {
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          object-fit: cover;
+        }
+
+
+        .arrow {
+            margin-left: auto;
+            transition: transform 0.2s ease;
+        }
+
+        .collapse.show + .arrow, .nav-link[aria-expanded="true"] .arrow {
+            transform: rotate(180deg);
+        }
+
+        .arrow {
+            transform: rotate(0deg); /* Pointing Down */
+        }
+
+        .nav-link span {
+            display: flex;
+            align-items: center;
+        }
+
+
+        .nav-link.active, .nav-link.active .arrow {
+            background-color: #273c75;
+            font-weight: bold;
+        }
+
+        .collapse.show .arrow {
+            transform: rotate(180deg); /* Arrow points up when expanded */
+        }
+
+        .submenu .nav-link.active {
+            background-color: #6c757d;
+            font-weight: bold;
+        }
+
+        .submenu {
+            margin-left: 20px;
+        }
+
+
+
+
+    </style>
+</head>
+<body>
+    <!-- Fixed Header with User Dropdown -->
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top" style="background-color: #273c75;">
+        <div class="container-fluid">
+            @if (userTypeId == "3")
+            {
+                <a class="navbar-brand" href="#">Supplier</a>
+            }
+            else
+            {
+                <a class="navbar-brand" href="#">Rider</a>
+            }
+            
+            <div class="dropdown ms-auto user-dropdown">
+                <a class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" href="#" role="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <img src="/landing/images/Default.png" alt="User" class="me-2">
+                    @if (userTypeId == "3")
+                    {
+                        <span>Supplier</span>
+                    }
+                    else
+                    {
+                        <span>Rider</span>
+                    }
+
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                    <li><a class="dropdown-item" asp-controller="Login" asp-action="Logout">Logout</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="wrapper">
+        <!-- Sidebar -->
+        <div class="sidebar p-3">
+            <ul class="nav flex-column" id="sidebarMenu">
+                @if (userTypeId == "3")
+                {
+                    <li class="nav-item">
+                        <a class="nav-link text-white @(ViewContext.RouteData.Values["controller"]?.ToString() == "S_R" ? "active" : "")"
+                           asp-controller="S_R" asp-action="SupplierList">
+                            <i class="bi bi-receipt me-2"></i> Purchase Request
+                        </a>
+                    </li>
+                }
+                @if (userTypeId == "4")
+                {
+                    <li class="nav-item">
+                        <a class="nav-link text-white @(ViewContext.RouteData.Values["controller"]?.ToString() == "S_R" ? "active" : "")"
+                           asp-controller="S_R" asp-action="RiderRequ">
+                            <i class="bi bi-bicycle me-2"></i> Rider Request
+                        </a>
+                    </li>
+                }
+
+
+            </ul>
+        </div>
+    </div>
+   
+
+
+    <div class="content">
+
+        @RenderBody()
+        @* <h2>Welcome to Admin Dashboard</h2>
+        <p>This is your main content area.</p> *@
+    </div>
+
+    @*  <div class="container">
+    <main role="main" class="pb-3">
+    @RenderBody()
+    </main>
+    </div> *@
+
+    <footer class="footer bg-gray text-black fixed-bottom border-top">
+        <div class="container text-center py-2">
+            &copy; 2025 Reserved By - ABD Pharma
+        </div>
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/sweetalert.js"></script>
+
+
+    @await RenderSectionAsync("Scripts", required: false)
+
+
+    <script>
+        $(document).ready(function () {
+            $('.done-btn').click(function (e) {
+                e.preventDefault();
+                var button = $(this);
+                var purchaseId = $(this).data('id');
+
+                $.ajax({
+                    url: '@Url.Action("SaveList")',
+                    type: 'POST',
+                    data: { id: purchaseId },
+                    success: function (response) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Done',
+                            text: 'Product Sale successfully!',
+                            timer: 2000,
+                            showConfirmButton: false
+                        }).then(() => {
+   
+                            button.hide();
+                        });
+                    },
+                    error: function () {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Oops...',
+                            text: 'Something went wrong!'
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+
+</body>
+</html>
+

@@ -1,0 +1,254 @@
+﻿
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - ABD-Pharma</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/MediPOS.styles.css" asp-append-version="true" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="~/css/datatables.min.css" rel="stylesheet" />
+
+
+
+    <style>
+        body {
+          padding-top: 56px;
+          min-height: 100vh;
+          overflow-x: hidden;
+        }
+        .sidebar {
+          min-height: 100vh;
+          position: fixed;
+          top: 56px;
+          left: 0;
+          width: 250px;
+          background-color: #192a56;
+          color: white;
+        }
+        .sidebar .nav-link.active {
+         background-color: #273c75;
+        }
+        .content {
+          margin-left: 250px;
+          padding: 20px;
+        }
+        .submenu {
+          padding-left: 1.5rem;
+        }
+        .user-dropdown img {
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          object-fit: cover;
+        }
+
+
+        .arrow {
+            margin-left: auto;
+            transition: transform 0.2s ease;
+        }
+
+        .collapse.show + .arrow, .nav-link[aria-expanded="true"] .arrow {
+            transform: rotate(180deg);
+        }
+
+        .arrow {
+            transform: rotate(0deg); /* Pointing Down */
+        }
+
+        .nav-link span {
+            display: flex;
+            align-items: center;
+        }
+
+
+        .nav-link.active, .nav-link.active .arrow {
+            background-color: #273c75;
+            font-weight: bold;
+        }
+
+        .collapse.show .arrow {
+            transform: rotate(180deg); /* Arrow points up when expanded */
+        }
+
+        .submenu .nav-link.active {
+            background-color: #6c757d;
+            font-weight: bold;
+        }
+
+        .submenu {
+            margin-left: 20px;
+        }
+
+
+
+
+    </style>
+</head>
+<body>
+    <!-- Fixed Header with User Dropdown -->
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top" style="background-color: #273c75;">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">Admin Panel</a>
+            <div class="dropdown ms-auto user-dropdown">
+                <a class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" href="#" role="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <img src="/landing/images/Default.png" alt="User" class="me-2">
+                    <span>Admin</span>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                    <li><a class="dropdown-item" asp-controller="Login" asp-action="Logout">Logout</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Sidebar -->
+    <div class="sidebar p-3">
+        <ul class="nav flex-column" id="sidebarMenu">
+            <li class="nav-item">
+                <a class="nav-link text-white @(ViewContext.RouteData.Values["controller"]?.ToString() == "Home" ? "active" : "")"
+                   asp-controller="Home" asp-action="Index">
+                    <i class="bi bi-bar-chart me-2"></i> Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-white @(ViewContext.RouteData.Values["controller"]?.ToString() == "Products" && (ViewContext.RouteData.Values["action"]?.ToString() == "Category"||
+                       ViewContext.RouteData.Values["action"]?.ToString() == "EditCategory") ? "active" : "")"
+                   asp-controller="Products" asp-action="Category">
+                    <i class="bi bi-folder me-2"></i> Category
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-white @((ViewContext.RouteData.Values["controller"]?.ToString() == "Products" &&
+                    (ViewContext.RouteData.Values["action"]?.ToString() == "Products" ||
+                     ViewContext.RouteData.Values["action"]?.ToString() == "EditProducts")) ? "active" : "")"
+                   asp-controller="Products" asp-action="Products">
+                    <i class="bi bi-box-seam me-2"></i> Products
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-white @(ViewContext.RouteData.Values["controller"]?.ToString() == "Suppliers" ? "active" : "")"
+                   asp-controller="Suppliers" asp-action="Index">
+                    <i class="bi bi-truck me-2"></i> Supplier
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link text-white @(ViewContext.RouteData.Values["controller"]?.ToString() == "Purchases" ? "active" : "")"
+                   asp-controller="Purchases" asp-action="Index">
+                    <i class="bi bi-cart-plus me-2"></i> Purchase
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-white @(ViewContext.RouteData.Values["controller"]?.ToString() == "Sales" ? "active" : "")"
+                   asp-controller="Sales" asp-action="Index">
+                    <i class="bi bi-cash-coin me-2"></i> Sales
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-white @(ViewContext.RouteData.Values["controller"]?.ToString() == "Rider" ? "active" : "")"
+                   asp-controller="Rider" asp-action="Create">
+                    <i class="bi bi-bicycle me-2"></i> Rider
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link text-white d-flex align-items-center justify-content-between @(ViewContext.RouteData.Values["controller"]?.ToString() == "Reports" ? "active" : "")"
+                   data-bs-toggle="collapse"
+                   href="#submenu1"
+                   role="button"
+                   aria-expanded="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Reports" ? "true" : "false")"
+                   aria-controls="submenu1">
+                    <span><i class="bi bi-file-earmark-text me-2"></i> Reports</span>
+                    <span class="arrow bi bi-chevron-down"></span>
+                </a>
+                <div class="collapse submenu @(ViewContext.RouteData.Values["controller"]?.ToString() == "Reports" ? "show" : "")" id="submenu1">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link text-white @(ViewContext.RouteData.Values["action"]?.ToString() == "StockReport" ? "active" : "")"
+                               asp-controller="Reports"
+                               asp-action="StockReport">
+                                <i class="bi bi-boxes me-2"></i> Stocks
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white @(ViewContext.RouteData.Values["action"]?.ToString() == "SalesReport" ? "active" : "")"
+                               asp-controller="Reports"
+                               asp-action="SalesReport">
+                                <i class="bi bi-graph-up-arrow me-2"></i> Sales
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </li>
+
+
+
+            @* <li class="nav-item">
+                <a class="nav-link text-white d-flex justify-content-between align-items-center"
+                   data-bs-toggle="collapse" href="#submenu2" role="button" aria-expanded="false" aria-controls="submenu2">
+                    <i class="bi bi-gear me-2"></i> Settings
+                    <span class="arrow">&#x25BC;</span>
+                </a>
+                <div class="collapse submenu" id="submenu2">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link text-white" href="#">
+                                <i class="bi bi-tools me-2"></i> General
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white" href="#">
+                                <i class="bi bi-shield-lock me-2"></i> Security
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </li> *@
+
+        </ul>
+    </div>
+
+
+    <div class="content">
+
+        @RenderBody()
+        @* <h2>Welcome to Admin Dashboard</h2>
+        <p>This is your main content area.</p> *@
+    </div>
+
+   @*  <div class="container">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div> *@
+
+    <footer class="border-top footer text-muted text-center">
+        <div class="container">
+            &copy; 2025 Reserved By - ABD Pharma @* - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy </a>*@
+        </div>
+    </footer>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/sweetalert.js"></script>
+  <script src="~/js/admin/signlr.min.js"></script>
+   
+    @await RenderSectionAsync("Scripts", required: false)
+
+    <script type="text/javascript">
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/orderHub")
+            .build();
+        connection.start()
+            .then(() => console.log("SignalR connected"))
+            .catch(err => console.error(err));
+
+
+           
+    </script>
+</body>
+</html>

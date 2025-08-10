@@ -1,0 +1,30 @@
+﻿@model DashboardVm
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+
+<div class="row">
+    <div class="col-md-6 col-xl-3 mb-4">
+        <div class="card bg-success text-white h-100">
+            <div class="card-body">
+                <h6>Total Sales</h6>
+                <h2>@Model.TotalSalesValue.ToString("0.00")</h2>  
+                <p class="mb-0">This month's sales</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-xl-3 mb-4">
+        <div class="card bg-primary text-white h-100">
+            <div class="card-body">
+                <h6>Total Profit</h6>
+                <h2>@Model.TotalProfit.ToString("0.00")</h2>
+                <p class="mb-0">This month's profit</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+

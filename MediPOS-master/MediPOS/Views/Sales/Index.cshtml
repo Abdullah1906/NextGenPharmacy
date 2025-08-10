@@ -1,0 +1,291 @@
+﻿@model List<OrderDisplayVM>
+
+@{
+    ViewData["Title"] = "Sales (POS)";
+}
+<link href="~/css/datatables.min.css" rel="stylesheet" />
+
+
+<h2 class="mb-5">Sales List</h2>
+
+<div class="row">
+    <!-- Sale Form -->
+    @* <div class="col-md-2">
+        <form asp-action="Save">
+            <input type="hidden" asp-for="Sale.Id" />
+
+            <div class="form-group">
+                <label asp-for="Sale.ProductId">Product<span style="color: red;">*</span></label>
+                <select asp-for="Sale.ProductId" class="form-control" id="productSelect">
+                    <option value="">Select Product</option>
+                    @foreach (var item in Model.Products)
+                    {
+                        <option value="@item.Id">@item.ProductName</option>
+                    }
+                </select>
+                <span asp-validation-for="Sale.ProductId" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Sale.Quantity">Quantity<span style="color: red;">*</span></label>
+                <input asp-for="Sale.Quantity" class="form-control" />
+                <span asp-validation-for="Sale.Quantity" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Sale.Price">Price<span style="color: red;">*</span></label>
+                <input asp-for="Sale.Price" class="form-control" id="productPrice"  />
+                <span asp-validation-for="Sale.Price" class="text-danger"></span>
+            </div>
+
+            <button type="submit" class="btn btn-success mt-2">Complete Sale</button>
+        </form>
+    </div> *@
+
+    <!-- Sales List -->
+    <div class="col-md-12">
+ 
+        <table class="table table-bordered table-striped" id="SalesList">
+            <thead>
+                <tr>
+                    <th>CustomerName</th>
+                    <th>OrderDetails</th>
+                    <th>Total</th>
+                    <th>Sale Date</th>
+                    <th>Status</th>
+                    <th style="width:300px">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@item.CustomerName</td>
+                        <td>
+                            <ul>
+                                @foreach (var order in item.OrderItems)
+                                {
+                                    <li>
+                                        @order.ProductName - @order.UnitPrice.ToString("0.00") x @order.Quantity
+                                    </li>
+                                }
+                            </ul>
+
+                        </td>
+                        <td>@item.TotalAmount</td>
+                        <td>@item.OrderDate.ToString("MM/dd/yyyy")</td>
+                        <td >
+                            @item.DeliveryStatus
+                        </td>
+                        <td id="action-@item.OrderId">
+                            @if (item.DeliveryStatus == DeliveryStatus.Delivered)
+                            {
+                                <button type="button" class="btn btn-success btn-md" disabled>Delivered</button>
+                                
+                            }
+                            else if (item.DeliveryStatus == DeliveryStatus.Assigned)
+                            {
+                                <button type="button" class="btn btn-primary btn-md" disabled>Assigned</button>
+                                <a asp-controller="Sales" asp-action="Print" asp-route-id="@item.OrderId" target="_blank" class="btn btn-md btn-danger">Print</a>
+
+                            }
+                            else
+                            {
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <select class="form-control" id="rider-select-@item.OrderId">
+                                            <option value="-1">Assign Rider</option>
+                                            @if (item.AvailableRiders != null && item.AvailableRiders.Any())
+                                            {
+                                                foreach (var rider in item.AvailableRiders)
+                                                {
+                                                    <option value="@rider.Id">@rider.Name</option>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <option value="">No rider available</option>
+                                            }
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <button type="button" class="btn btn-primary btn-md" data-id="@item.OrderId" onclick="assignRider(this)">Assign</button>
+                                        
+                                    </div>
+                                </div>
+                            }
+                        </td>
+
+
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>@* age javascript then datatables dite hobe*@
+    <script src="~/js/datatables.min.js"></script>
+
+    @*signlr script *@
+    <script src="~/js/admin/signlr.min.js"></script>
+
+    <script>
+        const deliveryConnection = new signalR.HubConnectionBuilder()
+            .withUrl("/deliveryHub")
+            .build();
+
+        deliveryConnection.start().then(() => {
+            console.log("Connected to DeliveryHub");
+        }).catch(err => console.error(err.toString()));
+
+        deliveryConnection.on("OrderDelivered", function (data) {
+            const orderId = data.orderId;
+            const row = $(`#action-${orderId}`).closest("tr");
+            row.find("td").eq(4).text("Delivered");
+
+            $(`#action-${orderId}`).html(`
+                <button type="button" class="btn btn-success btn-md" disabled>Delivered</button>
+            `);
+        });
+
+    </script>
+
+    <script>
+        const orderConnection = new signalR.HubConnectionBuilder()
+            .withUrl("/orderHub")
+            .build();
+
+        orderConnection.on("NewOrderPlaced", function (order) {
+            debugger;
+            var audio = new Audio("~/audio/mixkit-game-notification-wave-alarm-987.wav");
+            audio.play();
+            let orderDetails = `<ul>`;
+            order.orderItems.forEach(item => {
+                orderDetails += `<li>${item.productName} - ${item.unitPrice.toFixed(2)} x ${item.quantity}</li>`;
+            });
+            orderDetails += `</ul>`;
+
+            let riderOptions = order.availableRiders.length > 0
+                ? order.availableRiders.map(r => `<option value="${r.id}">${r.name}</option>`).join("")
+                : `<option value="">No rider available</option>`;
+
+            const rowHtml = `
+                <tr>
+                    <td>${order.customerName}</td>
+                    <td>${orderDetails}</td>
+                    <td>${order.totalAmount}</td>
+                    <td>${new Date(order.orderDate).toLocaleDateString()}</td>
+                    <td>Pending</td>
+                    <td id="action-${order.orderId}">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <select class="form-control" id="rider-select-${order.orderId}">
+                                    <option value="-1">Assign Rider</option>
+                                    ${riderOptions}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <button type="button" class="btn btn-primary btn-md" data-id="${order.orderId}" onclick="assignRider(this)">Assign</button>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            `;
+
+            $('#SalesList tbody').prepend(rowHtml);
+            Swal.fire("New Order", `New order from ${order.customerName}`, "info");
+        });
+
+        orderConnection.start().catch(err => console.error(err));
+
+        
+    </script>
+
+
+    <script>
+
+        new DataTable('#SalesList');
+
+        function assignRider(button) {
+            const orderId = $(button).data("id");
+            const riderId = $(`#rider-select-${orderId}`).val();
+
+            if (riderId === "-1" || riderId === "") {
+                Swal.fire("Please select a rider.", "", "warning");
+                return;
+            }
+
+            $.ajax({
+                url: '@Url.Action("AssignRider", "Tracking")',
+                type: 'POST',
+                data: {
+                    orderId: orderId,
+                    riderId: riderId
+                },
+                success: function (response) {
+                    if (response.success) {
+                        Swal.fire("Assigned!", "", "success");
+
+                        // Update status
+                        $(`#SalesList tr`).each(function () {
+                            const row = $(this);
+                            if (row.find(`#action-${orderId}`).length > 0) {
+                                row.find("td").eq(4).text(response.status);
+                            }
+                        });
+
+                        // Replace action buttons
+                        $('#action-' + orderId).html(`
+                            <button type="button" class="btn btn-primary btn-md" disabled>Assigned</button>
+                            <a href="/Sales/Print?id=${orderId}" target="_blank" class="btn btn-md btn-danger">Print</a>
+                        `);
+                    } else {
+                        Swal.fire("Error", "Failed to assign rider", "error");
+                    }
+                },
+                error: function () {
+                    Swal.fire("Error", "Server error occurred", "error");
+                }
+            });
+        }
+
+
+
+
+        // url: '/Tracking/AssignRider', // Adjust this route if needed
+        //     type: 'POST',
+        //         data: {
+        //     orderId: orderId,
+        //         riderId: riderId
+        // },
+        //
+        // success: function (response) {
+        //     debugger;
+        //     if (response.success) {
+        //         Swal.fire("Assigned!", "", "success");
+
+        //         // change the status dynamically
+
+        //         const row = $(button).closest("tr");
+        //         row.find("td").eq(4).text(response.status);
+
+        //         // Replace the action <td> with "Delivered" button
+        //         const deliverBtnHtml = `
+        //                                     <div class="row">
+        //                                         <div class="col-md-10 text-end">
+        //                                             <button type="button" id="DeliverButton" class="btn btn-success btn-md"
+        //                                                     data-id="${orderId}" onclick="Deliver(this)">Delivered</button>
+        //                                         </div>
+        //                                     </div>`;
+
+        //         $("#action-" + orderId).html(deliverBtnHtml);
+        //     }
+        
+
+    </script>
+}

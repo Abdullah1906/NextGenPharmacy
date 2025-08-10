@@ -1,0 +1,63 @@
+﻿@model List<PurchaseWithStatusVM>
+
+@{
+    Layout = "~/Views/Shared/_SupplierLayout.cshtml";
+    ViewData["Title"] = "Supplier Management";
+}
+
+<link href="~/css/datatables.min.css" rel="stylesheet" />
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-success text-white text-center">
+        <h2>All Purchase Products</h2>
+    </div>
+</div>
+
+<table class="table table-bordered" id="PurchaseTable">
+    " 
+    <thead>
+        <tr>
+            <th>Supplier</th>
+            <th>Product</th>
+            <th>Quantity</th>
+            <th>Price</th>
+            <th>Total</th>
+            <th>Purchase Date</th>
+            <th style="width: 150px;">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            var purchase = item.Purchase;
+            var supplierPurchase = item.SupplierPurchase;
+
+            <tr>
+                <td>@purchase.Supplier?.Name</td>
+                <td>@purchase.Product?.ProductName</td>
+                <td>@purchase.Quantity</td>
+                <td>@purchase.Price</td>
+                <td>@purchase.Total</td>
+                <td>@purchase.PurchaseDate?.ToString("yyyy-MM-dd")</td>
+                <td>
+                    @if (supplierPurchase != null && supplierPurchase.Status == "Done")
+                    {
+                        <a asp-controller="S_R" asp-action="Print" asp-route-id="@purchase.Id" target="_blank" class="btn btn-sm btn-danger">Print</a>
+                    }
+                    else
+                    {
+                        <a href="#" class="btn btn-sm btn-Success done-btn" data-id="@purchase.Id">Done</a>
+                        <a asp-controller="S_R" asp-action="Print" asp-route-id="@purchase.Id" target="_blank" class="btn btn-sm btn-danger">Print</a>
+                    }
+                </td>
+            </tr>
+        }
+
+    </tbody>
+</table>
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/js/datatables.min.js"></script>
+<script>
+    new DataTable('#PurchaseTable');
+</script>

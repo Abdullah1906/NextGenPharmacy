@@ -1,0 +1,39 @@
+﻿@model StockReportViewModel
+
+@{
+    ViewData["Title"] = "Stock Report";
+}
+
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-success text-white text-center">
+        <h2 >Stock Report</h2>
+    </div>
+</div>
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>Product Name</th>
+            <th>Stock Quantity</th>
+            <th>Price</th>
+            <th>Total Value</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var report in Model.StockReports)
+        {
+            <tr>
+                <td>@report.ProductName</td>
+                <td>@report.StockQuantity</td>
+                <td>@report.Price</td>
+                <td>@report.TotalValue</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<div class="alert alert-info mt-3">
+    <strong>Total Stock Value:</strong>
+    @Model.StockReports.Sum(x => x.TotalValue)
+</div>
