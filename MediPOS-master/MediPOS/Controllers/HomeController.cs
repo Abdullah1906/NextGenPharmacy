@@ -80,6 +80,60 @@ public class HomeController : Controller
         return View();
     }
 
+    [HttpGet]
+    public IActionResult GetMonthlySales()
+    {
+        var twelveMonthsAgo = DateTime.Today.AddMonths(-11);
+
+        // Get sales in last 12 months
+        var sales = _context.Sales
+            .Where(s => s.CreatedAt >= new DateTime(twelveMonthsAgo.Year, twelveMonthsAgo.Month, 1))
+            .ToList();
+
+        var orderIds = sales.Select(s => s.OrderId).ToList();
+
+        // Get order items that belong to those sales
+        var orderItems = _context.OrderItems
+            .Where(oi => orderIds.Contains(oi.OrderId))
+            .ToList();
+
+        // Join OrderItems with Sale to get sale date
+        var monthlySales = (from oi in orderItems
+                            join s in sales on oi.OrderId equals s.OrderId
+                            group new { oi, s } by new { s.CreatedAt.Year, s.CreatedAt.Month } into g
+                            select new
+                            {
+                                Month = new DateTime(g.Key.Year, g.Key.Month, 1).ToString("yyyy-MM"),
+                                TotalQuantity = g.Sum(x => x.oi.Quantity),
+                                TotalSales = g.Sum(x => x.oi.TotalPrice)
+                            })
+                            .OrderBy(x => x.Month)
+                            .ToList();
+
+        return Json(monthlySales);
+    }
+
+
+    // New API endpoint: Monthly purchases quantities for last 12 months
+    [HttpGet]
+    public IActionResult GetMonthlyPurchases()
+    {
+        var twelveMonthsAgo = DateTime.Today.AddMonths(-11);
+
+        var purchases = _context.Purchases
+            .Where(p => p.PurchaseDate >= new DateTime(twelveMonthsAgo.Year, twelveMonthsAgo.Month, 1))
+            .GroupBy(p => new { p.PurchaseDate.Value.Year, p.PurchaseDate.Value.Month })
+            .Select(g => new
+            {
+                Month = new DateTime(g.Key.Year, g.Key.Month, 1).ToString("yyyy-MM"),
+                TotalQuantity = g.Sum(p => p.Quantity),
+                TotalCost = g.Sum(p => p.Price * p.Quantity)
+            })
+            .OrderBy(x => x.Month)
+            .ToList();
+
+        return Json(purchases);
+    }
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error()
     {

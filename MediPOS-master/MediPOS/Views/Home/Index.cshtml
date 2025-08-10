@@ -1,4 +1,4 @@
-﻿@model DashboardVm
+﻿@* @model DashboardVm
 @{
     ViewData["Title"] = "Home Page";
 }
@@ -26,5 +26,194 @@
     </div>
 </div>
 
+
+
+ *@
+
+ @model DashboardVm
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="row">
+    <div class="col-md-6 col-xl-3 mb-4">
+        <div class="card bg-success text-white h-100">
+            <div class="card-body">
+                <h6>Total Sales</h6>
+                <h2>@Model.TotalSalesValue.ToString("0.00")</h2>
+                <p class="mb-0">This month's sales</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-xl-3 mb-4">
+        <div class="card bg-primary text-white h-100">
+            <div class="card-body">
+                <h6>Total Profit</h6>
+                <h2>@Model.TotalProfit.ToString("0.00")</h2>
+                <p class="mb-0">This month's profit</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- New Reports Row -->
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0 rounded-lg">
+            <div class="card-header bg-white border-0">
+                <h5 class="mb-0 text-primary fw-bold">Monthly Sales (Bar Chart)</h5>
+            </div>
+            <div class="card-body p-3">
+                <canvas id="monthlySalesBarChart" height="180"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0 rounded-lg">
+            <div class="card-header bg-white border-0">
+                <h5 class="mb-0 text-danger fw-bold">Product Sales Distribution (Pie Chart)</h5>
+            </div>
+            <div class="card-body p-3">
+                <canvas id="productSalesPieChart" height="180"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Gradient helper for bar chart
+        function createGradient(ctx, colorStart, colorEnd) {
+            const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+            gradient.addColorStop(0, colorStart);
+            gradient.addColorStop(1, colorEnd);
+            return gradient;
+        }
+
+        // Fetch Monthly Sales Data for Bar Chart
+        fetch('@Url.Action("GetMonthlySales", "Home")')
+            .then(res => res.json())
+            .then(data => {
+                const labels = data.map(x => x.month);
+                const salesData = data.map(x => x.totalSales);
+
+                const ctxBar = document.getElementById('monthlySalesBarChart').getContext('2d');
+                const gradientBar = createGradient(ctxBar, '#6a11cb', '#2575fc'); // Purple to Blue gradient
+
+                new Chart(ctxBar, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Total Sales',
+                            data: salesData,
+                            backgroundColor: gradientBar,
+                            borderRadius: 8,
+                            maxBarThickness: 40,
+                            hoverBackgroundColor: '#2575fc'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        animation: {
+                            duration: 1200,
+                            easing: 'easeOutQuart'
+                        },
+                        plugins: {
+                            legend: {
+                                display: true,
+                                labels: {
+                                    color: '#6a11cb',
+                                    font: { weight: 'bold', size: 14 }
+                                }
+                            },
+                            tooltip: {
+                                enabled: true,
+                                backgroundColor: '#333',
+                                titleFont: { weight: 'bold', size: 16 },
+                                bodyFont: { size: 14 },
+                                cornerRadius: 5,
+                                padding: 10
+                            }
+                        },
+                        scales: {
+                            x: {
+                                ticks: { color: '#555', font: { size: 13, weight: 'bold' } },
+                                grid: { display: false }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                ticks: { color: '#555', font: { size: 13 } },
+                                grid: {
+                                    color: 'rgba(200,200,200,0.15)',
+                                    borderDash: [6, 4]
+                                }
+                            }
+                        }
+                    }
+                });
+            });
+
+        // Fetch Product Sales Data for Pie Chart
+        fetch('@Url.Action("GetProductSalesDistribution", "Home")')
+            .then(res => res.json())
+            .then(data => {
+                const labels = data.map(x => x.productName);
+                const sales = data.map(x => x.quantitySold);
+
+                const ctxPie = document.getElementById('productSalesPieChart').getContext('2d');
+
+                const pastelColors = [
+                    '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0',
+                    '#9966FF', '#FF9F40', '#66BB6A', '#BA68C8'
+                ];
+
+                new Chart(ctxPie, {
+                    type: 'pie',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            data: sales,
+                            backgroundColor: pastelColors,
+                            borderColor: '#fff',
+                            borderWidth: 2,
+                            hoverOffset: 30
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        animation: {
+                            duration: 1500,
+                            easing: 'easeOutBounce'
+                        },
+                        plugins: {
+                            legend: {
+                                position: 'right',
+                                labels: {
+                                    color: '#333',
+                                    font: { size: 14, weight: 'bold' },
+                                    padding: 20,
+                                    boxWidth: 18
+                                }
+                            },
+                            tooltip: {
+                                enabled: true,
+                                backgroundColor: '#222',
+                                titleFont: { weight: 'bold', size: 16 },
+                                bodyFont: { size: 14 },
+                                cornerRadius: 6,
+                                padding: 12
+                            }
+                        }
+                    }
+                });
+            });
+    </script>
+
+}
 
 
