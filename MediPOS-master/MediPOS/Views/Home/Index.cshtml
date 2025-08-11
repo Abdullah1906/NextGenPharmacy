@@ -1,22 +1,89 @@
-﻿@model DashboardVm
+﻿@model MediPOS.Models.DashboardVm
 @{
     ViewData["Title"] = "Home Page";
 }
 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css" />
+
+<style>
+    /* Sales intensity coloring */
+    .sales-low {
+        background-color: #c8e6c9 !important; /* Light green */
+        color: #256029 !important;
+    }
+
+    .sales-medium {
+        background-color: #4caf50 !important; /* Medium green */
+        color: white !important;
+    }
+
+    .sales-high {
+        background-color: #1b5e20 !important; /* Dark green */
+        color: white !important;
+    }
+
+    /* No sales = red */
+    .sales-none {
+        background-color: #dc3545 !important; /* Bootstrap danger red */
+        color: white !important;
+    }
+
+    /* Today highlight */
+    .datepicker-days .today.active,
+    .datepicker-days .today.active:hover,
+    .datepicker-days .today.active:focus {
+        background-color: #2196f3 !important; /* Bright Blue */
+        color: white !important;
+        border-radius: 50%;
+    }
+
+    /* Tooltip styling */
+    .datepicker table tr td[data-toggle="tooltip"] {
+        position: relative;
+        cursor: pointer;
+    }
+
+    /* Legend styling */
+    #calendarLegend {
+        margin-top: 10px;
+        font-size: 0.9rem;
+    }
+
+        #calendarLegend span {
+            display: inline-block;
+            width: 15px;
+            height: 15px;
+            margin-right: 6px;
+            vertical-align: middle;
+            border-radius: 3px;
+        }
+
+        #calendarLegend .low {
+            background-color: #c8e6c9;
+        }
+
+        #calendarLegend .medium {
+            background-color: #4caf50;
+        }
+
+        #calendarLegend .high {
+            background-color: #1b5e20;
+        }
+</style>
 
 <div class="row">
+    <!-- Cards -->
     <div class="col-md-6 col-xl-3 mb-4">
-        <div class="card bg-success text-white h-100">
+        <div class="card bg-success text-white h-100 shadow-sm">
             <div class="card-body">
                 <h6>Total Sales</h6>
-                <h2>@Model.TotalSalesValue.ToString("0.00")</h2>  
+                <h2>@Model.TotalSalesValue.ToString("0.00")</h2>
                 <p class="mb-0">This month's sales</p>
             </div>
         </div>
     </div>
-
     <div class="col-md-6 col-xl-3 mb-4">
-        <div class="card bg-primary text-white h-100">
+        <div class="card bg-primary text-white h-100 shadow-sm">
             <div class="card-body">
                 <h6>Total Profit</h6>
                 <h2>@Model.TotalProfit.ToString("0.00")</h2>
@@ -24,7 +91,125 @@
             </div>
         </div>
     </div>
+    <div class="col-md-6 col-xl-3 mb-4">
+        <div class="card bg-warning text-white h-100 shadow-sm">
+            <div class="card-body">
+                <h6>Total Purchases</h6>
+                <h2>@Model.TotalPurchaseValue.ToString("0.00")</h2>
+                <p class="mb-0">This month's purchases</p>
+            </div>
+        </div>
+    </div>
 </div>
 
+<hr />
 
+<!-- Calendar -->
+<div class="row">
+    <div class="col-md-4">
+        <label class="form-label">Sales Calendar</label>
+        <div id="salesCalendar"></div>
 
+        <div id="calendarLegend" class="mt-2">
+            <strong>Legend:</strong>
+            <span class="low"></span> Low Sales &nbsp;&nbsp;
+            <span class="medium"></span> Medium Sales &nbsp;&nbsp;
+            <span class="high"></span> High Sales &nbsp;&nbsp;
+            <span style="background-color:#dc3545; width:15px; height:15px; display:inline-block; border-radius:3px;"></span> No Sales
+        </div>
+    </div>
+</div>
+
+<!-- Result -->
+<div id="salesResult" class="mt-4"></div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
+    <script>
+        let salesData = {};
+
+        function getSalesClass(totalSales) {
+            if (totalSales > 1000) return 'sales-high';
+            if (totalSales > 200) return 'sales-medium';
+            if (totalSales > 0) return 'sales-low';
+            if (totalSales === 0) return 'sales-none'; // No sales = red
+            return '';
+        }
+
+        function loadSalesForMonth(year, month) {
+            fetch(`/Home/GetMonthlySales?year=${year}&month=${month}`)
+                .then(res => res.json())
+                .then(data => {
+                    salesData = data;
+                    $('#salesCalendar').datepicker('update');
+                });
+        }
+
+        $('#salesCalendar').datepicker({
+            format: 'yyyy-mm-dd',
+            todayHighlight: true,
+            beforeShowDay: function (date) {
+                const dateStr = date.toISOString().split('T')[0];
+                if (salesData.hasOwnProperty(dateStr)) {
+                    const salesClass = getSalesClass(salesData[dateStr].totalSales);
+                    return {
+                        classes: salesClass,
+                        tooltip: `Sales: ${salesData[dateStr].totalSales.toFixed(2)}, Profit: ${salesData[dateStr].totalProfit.toFixed(2)}`
+                    };
+                }
+                // If date not in data, treat as no sales
+                return {
+                    classes: 'sales-none',
+                    tooltip: 'No sales data'
+                };
+            }
+        }).on('changeMonth', function (e) {
+            const year = e.date.getFullYear();
+            const month = e.date.getMonth() + 1;
+            loadSalesForMonth(year, month);
+        }).on('changeDate', function (e) {
+            const selectedDate = e.format('yyyy-mm-dd');
+            fetch(`/Home/GetSalesByDate?date=${selectedDate}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (!data.success) {
+                        document.getElementById("salesResult").innerHTML =
+                            `<div class='alert alert-danger'>${data.message}</div>`;
+                        return;
+                    }
+                    let html = `
+                        <div class="card p-3 shadow-sm">
+                            <h4>Sales Report for ${data.date}</h4>
+                            <p><strong>Total Sales:</strong> ${Number(data.totalSales).toFixed(2)}</p>
+                            <p><strong>Total Profit:</strong> ${Number(data.totalProfit).toFixed(2)}</p>
+                            <table class="table table-bordered">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Product</th>
+                                        <th>Quantity Sold</th>
+                                        <th>Total Sales</th>
+                                        <th>Profit</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                    `;
+                    data.items.forEach(item => {
+                        html += `
+                            <tr>
+                                <td>${item.productName}</td>
+                                <td>${item.quantitySold}</td>
+                                <td>${Number(item.totalSales).toFixed(2)}</td>
+                                <td>${Number(item.profit).toFixed(2)}</td>
+                            </tr>
+                        `;
+                    });
+                    html += `</tbody></table></div>`;
+                    document.getElementById("salesResult").innerHTML = html;
+                });
+        });
+
+        // Load current month sales on page load
+        const now = new Date();
+        loadSalesForMonth(now.getFullYear(), now.getMonth() + 1);
+    </script>
+}
