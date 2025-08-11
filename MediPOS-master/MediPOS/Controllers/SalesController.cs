@@ -1,6 +1,6 @@
 ﻿using MediPOS.DB;
 using MediPOS.Help;
-using MediPOS.Migrations;
+
 using MediPOS.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

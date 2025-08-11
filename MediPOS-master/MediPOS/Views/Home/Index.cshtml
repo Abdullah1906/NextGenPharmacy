@@ -1,4 +1,4 @@
-﻿@model DashboardVm
+﻿@* @model DashboardVm
 @{
     ViewData["Title"] = "Home Page";
 }
@@ -25,6 +25,182 @@
         </div>
     </div>
 </div>
+
+
+
+ *@
+
+ @model DashboardVm
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="row">
+    <div class="col-md-6 col-xl-3 mb-4">
+        <div class="card bg-success text-white h-100">
+            <div class="card-body">
+                <h6>Total Sales</h6>
+                <h2>@Model.TotalSalesValue.ToString("0.00")</h2>
+                <p class="mb-0">This month's sales</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-xl-3 mb-4">
+        <div class="card bg-primary text-white h-100">
+            <div class="card-body">
+                <h6>Total Profit</h6>
+                <h2>@Model.TotalProfit.ToString("0.00")</h2>
+                <p class="mb-0">This month's profit</p>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- New Reports Row -->
+<div class="row mt-4">
+    <!-- Monthly Sales (Bar Chart) -->
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0 rounded-lg">
+            <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 text-primary fw-bold">Monthly Purchases</h5>
+                <select id="monthFilter" class="form-select form-select-sm w-auto">
+                    <option value="">All Months</option>
+                    <option value="1">January</option>
+                    <option value="2">February</option>
+                    <option value="3">March</option>
+                    <option value="4">April</option>
+                    <option value="5">May</option>
+                    <option value="6">June</option>
+                    <option value="7">July</option>
+                    <option value="8">August</option>
+                    <option value="9">September</option>
+                    <option value="10">October</option>
+                    <option value="11">November</option>
+                    <option value="12">December</option>
+                </select>
+            </div>
+            <div class="card-body p-3">
+                <canvas id="monthlySalesBarChart" height="200"></canvas>
+            </div>
+        </div>
+        <div class="mb-2">
+            <h6>Total Purchased Products: <span id="totalProductsCount" class="text-primary fw-bold">0</span></h6>
+        </div>
+
+        <canvas id="monthlySalesBarChart" height="250"></canvas>
+
+    </div>
+
+    <!-- Product Sales Distribution (Pie Chart) -->
+    
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        let monthlySalesChart;
+
+        function loadMonthlyPurchases(month = null) {
+            let url = '/Home/GetMonthlyPurchases';
+            if (month) url += '?monthFilter=' + month;
+
+            fetch(url)
+                .then(res => res.json())
+                .then(data => {
+                    const labels = data.map(x => x.productName || x.ProductName || 'Unknown');
+                    const quantities = data.map(x => x.totalQuantity ?? x.TotalQuantity ?? 0);
+
+                    // Calculate total quantity of all products
+                    const totalQuantitySum = quantities.reduce((a, b) => a + b, 0);
+                    document.getElementById('totalProductsCount').innerText = totalQuantitySum;
+
+                    if (monthlySalesChart) {
+                        monthlySalesChart.destroy();
+                    }
+
+                    const ctx = document.getElementById('monthlySalesBarChart').getContext('2d');
+
+                    monthlySalesChart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: 'Total Quantity',
+                                data: quantities,
+                                backgroundColor: 'rgba(54, 162, 235, 0.8)',
+                                borderColor: 'rgba(54, 162, 235, 1)',
+                                borderWidth: 2,
+                                borderRadius: 8,
+                                maxBarThickness: 50
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            interaction: {
+                                mode: 'nearest',
+                                intersect: true
+                            },
+                            plugins: {
+                                legend: {
+                                    display: false
+                                },
+                                tooltip: {
+                                    enabled: true,
+                                    callbacks: {
+                                        label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y}`
+                                    }
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Monthly Product Purchase Quantities',
+                                    font: { size: 18, weight: 'bold' },
+                                    padding: { bottom: 10 }
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        stepSize: 1,
+                                        font: { size: 14 }
+                                    },
+                                    grid: {
+                                        color: '#e9ecef',
+                                        borderColor: '#dee2e6'
+                                    },
+                                    title: {
+                                        display: true,
+                                        text: 'Quantity',
+                                        font: { size: 14, weight: 'bold' }
+                                    }
+                                },
+                                x: {
+                                    ticks: {
+                                        font: { size: 13 }
+                                    },
+                                    grid: {
+                                        display: false
+                                    }
+                                }
+                            }
+                        }
+                    });
+                });
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            loadMonthlyPurchases();
+
+            const monthFilter = document.getElementById('monthFilter');
+            if (monthFilter) {
+                monthFilter.addEventListener('change', function () {
+                    loadMonthlyPurchases(this.value);
+                });
+            }
+        });
+    </script>
+}
 
 
 

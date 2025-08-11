@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using MediPOS.Models;
 using MediPOS.Help;
@@ -79,6 +79,70 @@ public class HomeController : Controller
     {
         return View();
     }
+
+    [HttpGet]
+    public IActionResult GetMonthlySales()
+    {
+        var twelveMonthsAgo = DateTime.Today.AddMonths(-11);
+
+        // Get sales in last 12 months
+        var sales = _context.Sales
+            .Where(s => s.CreatedAt >= new DateTime(twelveMonthsAgo.Year, twelveMonthsAgo.Month, 1))
+            .ToList();
+
+        var orderIds = sales.Select(s => s.OrderId).ToList();
+
+        // Get order items that belong to those sales
+        var orderItems = _context.OrderItems
+            .Where(oi => orderIds.Contains(oi.OrderId))
+            .ToList();
+
+        // Join OrderItems with Sale to get sale date
+        var monthlySales = (from oi in orderItems
+                            join s in sales on oi.OrderId equals s.OrderId
+                            group new { oi, s } by new { s.CreatedAt.Year, s.CreatedAt.Month } into g
+                            select new
+                            {
+                                Month = new DateTime(g.Key.Year, g.Key.Month, 1).ToString("yyyy-MM"),
+                                TotalQuantity = g.Sum(x => x.oi.Quantity),
+                                TotalSales = g.Sum(x => x.oi.TotalPrice)
+                            })
+                            .OrderBy(x => x.Month)
+                            .ToList();
+
+        return Json(monthlySales);
+    }
+
+
+    // New API endpoint: Monthly purchases quantities for last 12 months
+    [HttpGet]
+    public IActionResult GetMonthlyPurchases(int? monthFilter)
+    {
+        DateTime startDate = new DateTime(DateTime.Now.Year, 1, 1);
+
+        // Filter by year (and optionally month)
+        var query = _context.Purchases
+            .Where(p => p.IsActive && !p.IsDelete && p.PurchaseDate >= startDate);
+
+        if (monthFilter.HasValue && monthFilter.Value >= 1 && monthFilter.Value <= 12)
+        {
+            query = query.Where(p => p.PurchaseDate.Value.Month == monthFilter.Value);
+        }
+
+        // Group and sum based on the filtered query
+        var productPurchaseData = query
+            .GroupBy(x => x.Product.ProductName)
+            .Select(g => new
+            {
+                ProductName = g.Key,
+                TotalQuantity = g.Sum(x => x.Quantity)
+            })
+            .OrderByDescending(x => x.TotalQuantity)
+            .ToList();
+
+        return Json(productPurchaseData);
+    }
+
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error()
