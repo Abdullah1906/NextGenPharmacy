@@ -81,7 +81,10 @@
 
                                                 </td>
 
-                                                <td class="product-total">৳@(item.Product.Price * item.Quantity)</td>
+                                    <td class="product-total" data-unit-price="@item.Product.Price">
+                                        ৳@item.TotalPrice.ToString("0.00")
+                                    </td>
+
 
                                                 <td>
                                                     <a asp-controller="Landing" asp-action="RemoveFromCart" asp-route-id="@item.Product.Id" class="btn btn-primary height-auto btn-sm">X</a>
@@ -190,4 +193,41 @@
         </div>
     </div>
 </div>
+
+    <script>
+            document.querySelectorAll('.js-btn-plus, .js-btn-minus').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    let row = this.closest('tr');
+                    let input = row.querySelector('.quantity-input');
+                    let quantity = parseInt(input.value) || 0;
+                    let unitPrice = parseFloat(row.querySelector('.product-total').dataset.unitPrice) || 0;
+
+                    if (this.classList.contains('js-btn-plus')) {
+                        quantity++;
+                    } else {
+                        if (quantity > 1) quantity--;
+                    }
+                    input.value = quantity;
+
+                    // Row total update
+                    let rowTotalElem = row.querySelector('.product-total');
+                    let newRowTotal = unitPrice * quantity;
+                    rowTotalElem.textContent = '৳' + newRowTotal.toFixed(2);
+
+                    // Subtotal update
+                    let subtotal = 0;
+                    document.querySelectorAll('.product-total').forEach(td => {
+                        subtotal += parseFloat(td.textContent.replace('৳', '')) || 0;
+                    });
+                    document.getElementById('subtotal').textContent = '৳' + subtotal.toFixed(2);
+
+                    // VAT (5%) update
+                    let vatRate = 0.05;
+                    let grandTotal = subtotal + (subtotal * vatRate);
+                    document.getElementById('total').textContent = '৳' + grandTotal.toFixed(2);
+                });
+            });
+      
+    </script>
+
 

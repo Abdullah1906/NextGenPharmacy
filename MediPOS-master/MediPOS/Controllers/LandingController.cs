@@ -202,10 +202,17 @@ namespace MediPOS.Controllers
             if (existingItem != null)
             {
                 existingItem.Quantity += quantity;
+                existingItem.TotalPrice = existingItem.Quantity * existingItem.Product.Price ??0;
             }
             else
             {
-                cart.Add(new CartItemVm { Product = product, Quantity = quantity });
+                cart.Add(new CartItemVm
+                {
+                    Product = product,
+                    Quantity = quantity,
+                    TotalPrice = quantity * (product.Price ?? 0)
+
+                });
             }
 
             // Save cart to session
