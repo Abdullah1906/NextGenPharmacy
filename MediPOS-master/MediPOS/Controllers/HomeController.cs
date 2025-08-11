@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using MediPOS.Models;
 using MediPOS.Help;
@@ -116,24 +116,34 @@ public class HomeController : Controller
 
     // New API endpoint: Monthly purchases quantities for last 12 months
     [HttpGet]
-    public IActionResult GetMonthlyPurchases()
+    public IActionResult GetMonthlyPurchases(int? monthFilter)
     {
-        var twelveMonthsAgo = DateTime.Today.AddMonths(-11);
+        DateTime startDate = new DateTime(DateTime.Now.Year, 1, 1);
 
-        var purchases = _context.Purchases
-            .Where(p => p.PurchaseDate >= new DateTime(twelveMonthsAgo.Year, twelveMonthsAgo.Month, 1))
-            .GroupBy(p => new { p.PurchaseDate.Value.Year, p.PurchaseDate.Value.Month })
+        // Filter by year (and optionally month)
+        var query = _context.Purchases
+            .Where(p => p.IsActive && !p.IsDelete && p.PurchaseDate >= startDate);
+
+        if (monthFilter.HasValue && monthFilter.Value >= 1 && monthFilter.Value <= 12)
+        {
+            query = query.Where(p => p.PurchaseDate.Value.Month == monthFilter.Value);
+        }
+
+        // Group and sum based on the filtered query
+        var productPurchaseData = query
+            .GroupBy(x => x.Product.ProductName)
             .Select(g => new
             {
-                Month = new DateTime(g.Key.Year, g.Key.Month, 1).ToString("yyyy-MM"),
-                TotalQuantity = g.Sum(p => p.Quantity),
-                TotalCost = g.Sum(p => p.Price * p.Quantity)
+                ProductName = g.Key,
+                TotalQuantity = g.Sum(x => x.Quantity)
             })
-            .OrderBy(x => x.Month)
+            .OrderByDescending(x => x.TotalQuantity)
             .ToList();
 
-        return Json(purchases);
+        return Json(productPurchaseData);
     }
+
+
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error()
     {
