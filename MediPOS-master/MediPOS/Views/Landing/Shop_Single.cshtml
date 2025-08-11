@@ -52,16 +52,20 @@
                             }
                             @if (price > 2500 && price < 8000)
                             {
-                                <text><del>৳@(price + 100)</del> <strong class="text-primary h4">— ৳@price</strong></text>
+                                <text><del>৳@(price + 100)</del> <strong class="text-primary h4">— ৳<span id="unit-price">@price</span></strong></text>
                             }
                             else if (price > 50 && price < 2500)
                             {
-                                <text><del>৳@(price + 40)</del> <strong class="text-primary h4">— ৳@price</strong></text>
+                                <text><del>৳@(price + 40)</del> <strong class="text-primary h4">— ৳<span id="unit-price">@price</span></strong></text>
                             }
                             else
                             {
-                                <strong class="text-primary h4">৳@price</strong>
+                                <strong class="text-primary h4">৳<span id="unit-price">@price</span></strong>
                             }
+                        </p>
+                        
+                        <p class="total-price">
+                            <strong class="text-success h5">Total Price: ৳<span id="total-price">@price</span></strong>
                         </p>
 
                         <form asp-controller="Landing" asp-action="Cart" method="post">
@@ -128,3 +132,37 @@
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const quantityInput = document.querySelector('.quantity-input');
+        const unitPriceElement = document.getElementById('unit-price');
+        const totalPriceElement = document.getElementById('total-price');
+        const minusBtn = document.querySelector('.js-btn-minus');
+        const plusBtn = document.querySelector('.js-btn-plus');
+        
+        const unitPrice = parseFloat(unitPriceElement.textContent);
+        
+        function updateTotalPrice() {
+            const quantity = parseInt(quantityInput.value) || 1;
+            const totalPrice = unitPrice * quantity;
+            totalPriceElement.textContent = totalPrice.toFixed(2);
+        }
+        
+        // Update total price when quantity changes
+        quantityInput.addEventListener('input', updateTotalPrice);
+        quantityInput.addEventListener('change', updateTotalPrice);
+        
+        // Update total price when plus/minus buttons are clicked
+        minusBtn.addEventListener('click', function() {
+            setTimeout(updateTotalPrice, 10); // Small delay to ensure value is updated
+        });
+        
+        plusBtn.addEventListener('click', function() {
+            setTimeout(updateTotalPrice, 10); // Small delay to ensure value is updated
+        });
+        
+        // Initialize total price
+        updateTotalPrice();
+    });
+</script>

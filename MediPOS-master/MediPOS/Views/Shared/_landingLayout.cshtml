@@ -253,18 +253,15 @@
             // Update subtotal section
             document.getElementById("subtotal").textContent = '৳' + subtotal.toFixed(2);
 
-            let vatPercent = 3;
-            debugger;
+            let vatPercent = 5;
             // Calculate VAT amount
             let vatAmount = subtotal * (vatPercent / 100);
 
             // Calculate grand total (subtotal + VAT)
             let grandTotal = subtotal + vatAmount;
 
-            let grandTotalInt = Math.round(grandTotal);
-
             // Update total section
-            document.getElementById("total").textContent = '৳' + grandTotalInt;
+            document.getElementById("total").textContent = '৳' + grandTotal.toFixed(2);
 
         }
 
@@ -274,7 +271,10 @@
 
         // Also call updateCartTotals whenever quantities change (e.g., plus/minus buttons or manual input)
         document.querySelectorAll('.quantity-input').forEach(input => {
-            input.addEventListener('change', updateCartTotals);
+            input.addEventListener('change', function() {
+                updateCartTotals();
+                updateCartInBackend(this);
+            });
         });
 
 
@@ -287,6 +287,7 @@
                     quantity--;
                     input.value = quantity;
                     updateCartTotals();
+                    updateCartInBackend(input);
                 }
             });
         });
@@ -298,8 +299,33 @@
                 quantity++;
                 input.value = quantity;
                 updateCartTotals();
+                updateCartInBackend(input);
             });
         });
+
+        // Function to update cart in backend
+        function updateCartInBackend(input) {
+            const row = input.closest('tr');
+            const productId = row.querySelector('a[href*="RemoveFromCart"]').getAttribute('href').match(/id=(\d+)/)[1];
+            const quantity = parseInt(input.value);
+            
+            fetch('/Landing/UpdateCart', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `productId=${productId}&quantity=${quantity}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (!data.success) {
+                    console.error('Failed to update cart');
+                }
+            })
+            .catch(error => {
+                console.error('Error updating cart:', error);
+            });
+        }
 
 
     

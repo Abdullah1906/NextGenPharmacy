@@ -238,6 +238,23 @@ namespace MediPOS.Controllers
             return RedirectToAction("Cart");
         }
 
+        /// Update cart item quantity
+        [HttpPost]
+        public IActionResult UpdateCart(int productId, int quantity)
+        {
+            var cart = HttpContext.Session.GetObject<List<CartItemVm>>("Cart") ?? new List<CartItemVm>();
+
+            var item = cart.FirstOrDefault(c => c.Product.Id == productId);
+            if (item != null)
+            {
+                item.Quantity = quantity;
+                item.TotalPrice = quantity * (item.Product.Price ?? 0);
+                HttpContext.Session.SetObject("Cart", cart);
+            }
+
+            return Json(new { success = true });
+        }
+
         public IActionResult ThankYou()
         {
             return View();
