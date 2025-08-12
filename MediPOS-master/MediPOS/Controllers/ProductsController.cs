@@ -95,6 +95,20 @@ namespace MediPOS.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult SaveProducts(ProductsVM product)
         {
+            // Custom validation for nullable Price and Stock
+            if (!product.Price.HasValue)
+            {
+                ModelState.AddModelError("Price", "Price is required.");
+            }
+            if (!product.Stock.HasValue)
+            {
+                ModelState.AddModelError("Stock", "Stock quantity is required.");
+            }
+            else if (product.Stock < 0)
+            {
+                ModelState.AddModelError("Stock", "Stock quantity cannot be negative.");
+            }
+
             if (ModelState.IsValid)
             {
                 // Prepare image path
@@ -127,8 +141,8 @@ namespace MediPOS.Controllers
                     Id = product.Id,
                     ProductName = product.ProductName,
                     CategoryId = product.CategoryId,
-                    Price = product.Price ?? 0,
-                    Stock = product.Stock ?? 0,
+                    Price = product.Price.Value,  // Safe because ModelState is valid and Price has value
+                    Stock = product.Stock.Value,  // Safe here too
                     ImageUrl = imagePath,
 
                     IsActive = true,
@@ -137,18 +151,31 @@ namespace MediPOS.Controllers
 
                 if (product.Id == 0)
                 {
-                    productEntity.CreatedBy = User.Identity.Name; // assuming logged-in user
+                    productEntity.CreatedBy = User.Identity.Name;
                     productEntity.CreatedAt = DateTime.UtcNow;
                     _context.Products.Add(productEntity);
                 }
-
                 else
                 {
+                    // Extra check if you want to prevent reducing stock below 0 based on current DB value:
+                    var existingProduct = _context.Products.Find(product.Id);
+                    if (existingProduct != null && product.Stock < 0)
+                    {
+                        ModelState.AddModelError("Stock", "Stock quantity cannot be negative.");
+                        var errorViewModel = new ProductIndexViewModel
+                        {
+                            Product = product,
+                            Products = _context.Products.Include(p => p.Category).ToList(),
+                            Categories = _context.Categories.ToList()
+                        };
+                        return View("Products", errorViewModel);
+                    }
+
+
                     productEntity.UpdatedBy = User.Identity.Name;
                     productEntity.UpdatedAt = DateTime.UtcNow;
                     _context.Products.Update(productEntity);
                 }
-
 
                 _context.SaveChanges();
                 return RedirectToAction("Products");
@@ -164,6 +191,7 @@ namespace MediPOS.Controllers
 
             return View("Products", viewModel);
         }
+
 
 
 
