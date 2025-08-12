@@ -44,7 +44,7 @@
 
             <div class="form-group">
                 <label asp-for="Purchase.Quantity">Quantity<span style="color: red;">*</span></label>
-                <input asp-for="Purchase.Quantity" class="form-control" />
+                <input asp-for="Purchase.Quantity" class="form-control" min="0" />
                 <span asp-validation-for="Purchase.Quantity" class="text-danger"></span>
             </div>
 
